@@ -52,3 +52,9 @@ Edit
 ```bash
 dotnet new webapi -n BlogNest
 cd BlogNest
+```
+---
+### ✅ 3. Install nuget packages
+dotnet add package Microsoft.EntityFrameworkCore
+dotnet add package Microsoft.EntityFrameworkCore.Design
+dotnet add package Npgsql.EntityFrameworkCore.PostgreSQL
