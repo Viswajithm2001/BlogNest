@@ -1,4 +1,5 @@
-namespace BlogNest.Dtos{
+namespace BlogNest.Dtos
+{
     public class RegisterRequest
     {
         public string Username { get; set; } = string.Empty;
