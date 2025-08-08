@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
 using BlogNest.Dtos;
 using BlogNest.Services;
+using BlogNest.Data;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace BlogNest.Controllers
 {
@@ -47,5 +50,18 @@ namespace BlogNest.Controllers
             }
             return Ok(new { Token = token });
         }
+        [HttpPut("privacy")]
+        [Authorize]
+        public async Task<IActionResult> UpdatePrivacy(bool isPublic)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var user = await _authService.UpdatePrivacyAsync(Guid.Parse(userId), isPublic);
+            if (!user)
+            {
+                return NotFound("User not found");
+            }
+            return NoContent();
+        }
+
     }
 }

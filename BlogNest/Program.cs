@@ -19,7 +19,9 @@ builder.Services.AddDbContext<BlogDbContext>(options =>
 
 // ✅ Register custom services BEFORE Build()
 builder.Services.AddScoped<IAuthService, AuthService>(); // ✔ Make sure this matches actual class name
-
+builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
 // JWT Authentication setup
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>

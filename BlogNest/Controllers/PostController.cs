@@ -33,36 +33,88 @@ namespace BlogNest.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetAllPosts()
         {
-            var posts = await _dbContext.Posts.OrderByDescending(post => post.CreatedAt).Select(post => new PostResponseDto
-            {
-                Id = post.Id,
-                Title = post.Title,
-                Content = post.Content,
-                CreatedAt = post.CreatedAt,
-                UserId = post.UserId
-            }).ToListAsync();
+            var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var posts = await _dbContext.Posts
+                .Include(p => p.User)
+                .Where(p => p.User.IsPublic || p.UserId.ToString() == requestingUserId)
+                .Select(p => new PostResponseDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Content = p.Content,
+                    CreatedAt = p.CreatedAt,
+                    UserId = p.UserId,
+                    AuthorUsername = p.User.Username
+                })
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
             return Ok(posts);
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("user/{accountId:guid}")]
+        public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetPostsByUser(Guid accountId)
+        {
+            var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var user = await _dbContext.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Id == accountId);
+
+            if (user == null)
+                return NotFound("User not found");
+
+            if (!user.IsPublic && requestingUserId != accountId.ToString())
+                return Forbid();
+
+            var posts = await _dbContext.Posts
+                .Where(p => p.UserId == accountId)
+                .Select(p => new PostResponseDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Content = p.Content,
+                    CreatedAt = p.CreatedAt,
+                    UserId = p.UserId,
+                    AuthorUsername = user.Username
+                })
+                .OrderByDescending(p => p.CreatedAt)
+                .ToListAsync();
+
+            return Ok(posts);
+        }
+
+        [HttpGet("{id:guid}")]
         public async Task<ActionResult<PostResponseDto>> GetPostById(Guid id)
         {
-            var post = await _dbContext.Posts.FindAsync(id);
+            var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var post = await _dbContext.Posts
+                .Include(p => p.User)
+                .Where(p => p.Id == id)
+                .Select(p => new PostResponseDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Content = p.Content,
+                    CreatedAt = p.CreatedAt,
+                    UserId = p.UserId,
+                    AuthorUsername = p.User.Username,
+                    IsAuthorPublic = p.User.IsPublic
+                    
+                })
+                .FirstOrDefaultAsync();
 
             if (post == null)
-            {
                 return NotFound();
-            }
-            var postDto = new PostResponseDto
-            {
-                Id = post.Id,
-                Title = post.Title,
-                Content = post.Content,
-                CreatedAt = post.CreatedAt,
-                UserId = post.UserId
-            };
-            return Ok(postDto);
+
+            if (!post.IsAuthorPublic && post.UserId.ToString() != requestingUserId)
+                return Unauthorized("This account is private.");
+
+            return Ok(post);
         }
+
         [HttpPost]
         public async Task<ActionResult<PostResponseDto>> CreatePost([FromBody] CreatePostDto request)
         {

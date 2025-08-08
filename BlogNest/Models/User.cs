@@ -13,6 +13,7 @@ namespace BlogNest.Models
         public string Email { get; set; }
         [Required]
         public string PasswordHash { get; set; }
+        public bool IsPublic { get; set; } = true;
         public ICollection<Post> Posts { get; set; }
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }

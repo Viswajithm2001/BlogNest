@@ -12,6 +12,7 @@ namespace BlogNest.Services
     {
         Task<UserResponseDto> RegisterAsync(UserRegisterDto userRegisterDto);
         Task<string> LoginAsync(UserLoginDto userLoginDto);
+        Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic);
     }
     public class AuthService : IAuthService
     {
@@ -31,6 +32,7 @@ namespace BlogNest.Services
                 Username = userRegisterDto.Username,
                 Email = userRegisterDto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password),
+                IsPublic = userRegisterDto.IsPublic
             };
             if (await _context.Users.AnyAsync(u => u.Username == userRegisterDto.Username || u.Email == userRegisterDto.Email))
             {
@@ -57,6 +59,16 @@ namespace BlogNest.Services
             }
 
             return GenerateJwtToken(user);
+        }
+        
+        public async Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return false;
+
+            user.IsPublic = isPublic;
+            await _context.SaveChangesAsync();
+            return true;
         }
         private string GenerateJwtToken(User user)
         {
