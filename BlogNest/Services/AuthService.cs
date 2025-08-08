@@ -32,7 +32,10 @@ namespace BlogNest.Services
                 Email = userRegisterDto.Email,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(userRegisterDto.Password),
             };
-
+            if (await _context.Users.AnyAsync(u => u.Username == userRegisterDto.Username || u.Email == userRegisterDto.Email))
+            {
+                throw new InvalidOperationException("Username or email already exists.");
+            }
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 

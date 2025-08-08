@@ -17,12 +17,25 @@ namespace BlogNest.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
         {
-            var result = await _authService.RegisterAsync(userRegisterDto);
-            if (result == null)
+            try
             {
-                return BadRequest("Registration failed");
+                var result = await _authService.RegisterAsync(userRegisterDto);
+                if (result == null)
+                {
+                    return BadRequest("Registration failed");
+                }
+                return Ok(result);
             }
-            return Ok(result);
+            catch (InvalidOperationException ex)
+            {
+                // Duplicate user -> 409 Conflict
+                return Conflict(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                // Unexpected error
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Registration failed" });
+            }
         }
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
