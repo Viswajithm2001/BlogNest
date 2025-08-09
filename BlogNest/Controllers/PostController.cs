@@ -33,11 +33,14 @@ namespace BlogNest.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetAllPosts()
         {
-            var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var posts = await _dbContext.Posts
                 .Include(p => p.User)
-                .Where(p => p.User.IsPublic || p.UserId.ToString() == requestingUserId)
+                .Include(p => p.Comments)
+                    .ThenInclude(c => c.User)
+                .Where(p => p.User.IsPublic || p.UserId.ToString() == userId)
+                .OrderByDescending(p => p.CreatedAt)
                 .Select(p => new PostResponseDto
                 {
                     Id = p.Id,
@@ -45,13 +48,27 @@ namespace BlogNest.Controllers
                     Content = p.Content,
                     CreatedAt = p.CreatedAt,
                     UserId = p.UserId,
-                    AuthorUsername = p.User.Username
+                    AuthorUsername = p.User.Username,
+                    IsAuthorPublic = p.User.IsPublic,
+                    Tags = p.Tags.Select(t => t.Name).ToList(),
+                    Comments = p.Comments
+                        .OrderByDescending(c => c.CreatedAt)
+                        .Select(c => new CommentResponseDto
+                        {
+                            Id = c.Id,
+                            Content = c.Content,
+                            CreatedAt = c.CreatedAt,
+                            PostId = c.PostId,
+                            UserId = c.UserId,
+                            AuthorUsername = c.User.Username
+                        }).ToList()
                 })
-                .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
 
             return Ok(posts);
         }
+
+
 
         [HttpGet("user/{accountId:guid}")]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetPostsByUser(Guid accountId)
@@ -77,7 +94,9 @@ namespace BlogNest.Controllers
                     Content = p.Content,
                     CreatedAt = p.CreatedAt,
                     UserId = p.UserId,
-                    AuthorUsername = user.Username
+                    AuthorUsername = user.Username,
+                    IsAuthorPublic = user.IsPublic,
+                    Tags = p.Tags.Select(t => t.Name).ToList()
                 })
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync();
@@ -91,7 +110,7 @@ namespace BlogNest.Controllers
             var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             var post = await _dbContext.Posts
-                .Include(p => p.User)
+                .Include(p => p.User).Include(p => p.Comments)
                 .Where(p => p.Id == id)
                 .Select(p => new PostResponseDto
                 {
@@ -101,8 +120,18 @@ namespace BlogNest.Controllers
                     CreatedAt = p.CreatedAt,
                     UserId = p.UserId,
                     AuthorUsername = p.User.Username,
-                    IsAuthorPublic = p.User.IsPublic
-                    
+                    IsAuthorPublic = p.User.IsPublic,
+                    Tags = p.Tags.Select(t => t.Name).ToList(),
+                    Comments = p.Comments.Select(c => new CommentResponseDto
+                    {
+                        Id = c.Id,
+                        Content = c.Content,
+                        CreatedAt = c.CreatedAt,
+                        PostId = c.PostId,
+                        UserId = c.UserId,
+                        AuthorUsername = c.User.Username
+                    }).OrderByDescending(c => c.CreatedAt).ToList()
+
                 })
                 .FirstOrDefaultAsync();
 
@@ -115,26 +144,67 @@ namespace BlogNest.Controllers
             return Ok(post);
         }
 
+        [HttpGet("tag/{tagName}")]
+        public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetPostsByTag(string tagName)
+        {
+            var normalized = tagName.Trim().ToLowerInvariant();
+
+            var posts = await _dbContext.Posts
+                .Include(p => p.User)
+                .Include(p => p.Tags)
+                .Include(p => p.Comments) // if you want comments too
+                    .ThenInclude(c => c.User)
+                .Where(p => p.Tags.Any(t => t.Name == normalized) && (p.User.IsPublic || p.UserId.ToString() == User.FindFirstValue(ClaimTypes.NameIdentifier)))
+                .Select(p => new PostResponseDto
+                {
+                    Id = p.Id,
+                    Title = p.Title,
+                    Content = p.Content,
+                    CreatedAt = p.CreatedAt,
+                    UserId = p.UserId,
+                    AuthorUsername = p.User.Username,
+                    Tags = p.Tags.Select(t => t.Name).ToList(),
+                    Comments = p.Comments.Select(c => new CommentResponseDto
+                    {
+                        Id = c.Id,
+                        Content = c.Content,
+                        CreatedAt = c.CreatedAt,
+                        PostId = c.PostId,
+                        UserId = c.UserId,
+                        AuthorUsername = c.User.Username
+                    }).ToList()
+                })
+                .ToListAsync();
+
+            return Ok(posts);
+        }
+
         [HttpPost]
         public async Task<ActionResult<PostResponseDto>> CreatePost([FromBody] CreatePostDto request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Title) || string.IsNullOrWhiteSpace(request.Content))
-            {
                 return BadRequest("Invalid post data.");
-            }
-            Guid userId;
-            var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!string.IsNullOrEmpty(claim) && Guid.TryParse(claim, out var parsed))
+
+            var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(claim) || !Guid.TryParse(claim, out var userId))
+                return Unauthorized();
+
+            // Normalize tag names: trim, to-lower, unique
+            var incomingTagNames = (request.Tags ?? new List<string>())
+                .Select(t => t?.Trim())
+                .Where(t => !string.IsNullOrWhiteSpace(t))
+                .Select(t => t!.ToLowerInvariant())
+                .Distinct()
+                .ToList();
+
+            // Pre-load existing tags matching incoming (single query)
+            List<Tag> existingTags = new();
+            if (incomingTagNames.Count > 0)
             {
-                userId = parsed;
-            }
-            else if (request.UserId != Guid.Empty)
-            {
-                userId = request.UserId; // fallback for now
-            }
-            else
-            {
-                return BadRequest(new { message = "UserId is required (authenticate to avoid sending it explicitly)." });
+                // Note: using ToLower on DB side can be slower; alternative: store tags in lowercase always
+                existingTags = await _dbContext.Tags
+                    .Where(t => incomingTagNames.Contains(t.Name.ToLower()))
+                    .ToListAsync();
             }
 
             var post = new Post
@@ -142,9 +212,25 @@ namespace BlogNest.Controllers
                 Id = Guid.NewGuid(),
                 Title = request.Title,
                 Content = request.Content,
-                CreatedAt = DateTime.UtcNow, // set CreatedAt here
-                UserId = userId
+                CreatedAt = DateTime.UtcNow,
+                UserId = userId,
+                Tags = new List<Tag>()
             };
+
+            foreach (var name in incomingTagNames)
+            {
+                var tag = existingTags.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                if (tag != null)
+                {
+                    post.Tags.Add(tag);
+                }
+                else
+                {
+                    var newTag = new Tag { Id = Guid.NewGuid(), Name = name };
+                    post.Tags.Add(newTag);
+                    _dbContext.Tags.Add(newTag); // ensure it will be inserted
+                }
+            }
 
             _dbContext.Posts.Add(post);
             await _dbContext.SaveChangesAsync();
@@ -155,28 +241,72 @@ namespace BlogNest.Controllers
                 Title = post.Title,
                 Content = post.Content,
                 CreatedAt = post.CreatedAt,
-                UserId = post.UserId
+                UserId = post.UserId,
+                AuthorUsername = (await _dbContext.Users.FindAsync(userId))?.Username ?? "",
+                Tags = post.Tags.Select(t => t.Name).ToList()
             };
 
             return CreatedAtAction(nameof(GetPostById), new { id = post.Id }, resp);
         }
+
         // PUT: api/posts/{id}
         // TODO: Add [Authorize] and owner-check logic later
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdatePostDto request)
+        public async Task<IActionResult> UpdatePost(Guid id, [FromBody] UpdatePostDto request)
         {
-            var post = await _dbContext.Posts.FindAsync(id);
+            var post = await _dbContext.Posts
+                .Include(p => p.Tags)
+                .FirstOrDefaultAsync(p => p.Id == id);
+
             if (post == null) return NotFound();
 
-            // update fields (partial update allowed)
-            if (!string.IsNullOrEmpty(request.Title)) post.Title = request.Title;
-            if (!string.IsNullOrEmpty(request.Content)) post.Content = request.Content;
+            var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (post.UserId.ToString() != requestingUserId) return Forbid();
 
-            _dbContext.Posts.Update(post);
+            if (!string.IsNullOrWhiteSpace(request.Title)) post.Title = request.Title;
+            if (!string.IsNullOrWhiteSpace(request.Content)) post.Content = request.Content;
+
+            if (request.Tags != null)
+            {
+                var normalized = request.Tags
+                    .Where(t => !string.IsNullOrWhiteSpace(t))
+                    .Select(t => t!.Trim().ToLowerInvariant())
+                    .Distinct()
+                    .ToList();
+
+                // Load all existing tags used in normalized list
+                var existing = await _dbContext.Tags
+                    .Where(t => normalized.Contains(t.Name.ToLower()))
+                    .ToListAsync();
+
+                // Remove tags that are not in new normalized set
+                var toRemove = post.Tags.Where(t => !normalized.Contains(t.Name.ToLower())).ToList();
+                foreach (var r in toRemove) post.Tags.Remove(r);
+
+                // Add new tags
+                foreach (var name in normalized)
+                {
+                    if (post.Tags.Any(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+                        continue;
+
+                    var tag = existing.FirstOrDefault(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                    if (tag != null)
+                    {
+                        post.Tags.Add(tag);
+                    }
+                    else
+                    {
+                        var newTag = new Tag { Id = Guid.NewGuid(), Name = name };
+                        post.Tags.Add(newTag);
+                        _dbContext.Tags.Add(newTag);
+                    }
+                }
+            }
+
             await _dbContext.SaveChangesAsync();
-
             return NoContent();
         }
+
         // DELETE: api/posts/{id}
         // TODO: Add [Authorize] and owner-check logic later
         [HttpDelete("{id:guid}")]
@@ -184,7 +314,8 @@ namespace BlogNest.Controllers
         {
             var post = await _dbContext.Posts.FindAsync(id);
             if (post == null) return NotFound();
-
+            var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (post.UserId.ToString() != requestingUserId) return Forbid();
             _dbContext.Posts.Remove(post);
             await _dbContext.SaveChangesAsync();
 

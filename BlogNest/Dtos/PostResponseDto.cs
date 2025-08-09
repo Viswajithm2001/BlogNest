@@ -9,5 +9,7 @@ namespace BlogNest.Dtos
         public Guid UserId { get; set; }
         public string AuthorUsername { get; set; }
         public bool IsAuthorPublic { get; set; } 
+        public List<string> Tags { get; set; } = new List<string>();
+        public ICollection<CommentResponseDto> Comments { get; set; } = new List<CommentResponseDto>();
     }
 }
