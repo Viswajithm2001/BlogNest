@@ -13,7 +13,7 @@ namespace BlogNest.Data
         public DbSet<Post> Posts { get; set; }
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Like> Likes { get; set; }
-        public DbSet<Tag> Tags { get; set; }
+        public DbSet<Tag> Tags { get; set; } = default!; // Posts, Users, Comments, Likes already present
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Post>()
