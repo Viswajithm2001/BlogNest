@@ -3,13 +3,18 @@ using BlogNest.Data;
 using BlogNest.Middlewares;
 using BlogNest.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+using Serilog;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
+var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog(); // Use Serilog for logging
 // Add services to the container
 builder.Services.AddControllers(); // ✅ Essential for API Controllers
 builder.Services.AddEndpointsApiExplorer();
