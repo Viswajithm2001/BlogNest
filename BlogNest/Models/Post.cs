@@ -11,5 +11,6 @@ namespace BlogNest.Models
         public ICollection<Comment> Comments { get; set; }
         public ICollection<Like> Likes { get; set; }
         public ICollection<Tag> Tags { get; set; }
+        public string? ImageUrl { get; set; }
     }
 }

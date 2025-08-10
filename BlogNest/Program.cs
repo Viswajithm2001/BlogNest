@@ -55,7 +55,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseAuthentication(); // ⚠️ Must be before UseAuthorization
 app.UseAuthorization();
-
+app.UseStaticFiles();
 app.MapControllers(); // ✅ Route to controllers like AuthController
 
 app.Run();
