@@ -1,14 +1,20 @@
 using System.Text;
 using BlogNest.Data;
+using BlogNest.Middlewares;
 using BlogNest.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+using Serilog;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
-var builder = WebApplication.CreateBuilder(args);
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.File("logs/log-.txt", rollingInterval: RollingInterval.Day)
+    .CreateLogger();
 
+var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog(); // Use Serilog for logging
 // Add services to the container
 builder.Services.AddControllers(); // ✅ Essential for API Controllers
 builder.Services.AddEndpointsApiExplorer();
@@ -17,6 +23,16 @@ builder.Services.AddSwaggerGen(); // Instead of builder.Services.AddOpenApi()
 builder.Services.AddDbContext<BlogDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontEnd", policy =>
+    {
+        policy.AllowAnyHeader()
+              .AllowAnyMethod()
+              .WithOrigins("http://localhost:3000") // Adjust to your frontend URL
+              .AllowCredentials();
+    });
+});
 // ✅ Register custom services BEFORE Build()
 builder.Services.AddScoped<IAuthService, AuthService>(); // ✔ Make sure this matches actual class name
 builder.Services.AddControllers()
@@ -56,6 +72,8 @@ app.UseHttpsRedirection();
 app.UseAuthentication(); // ⚠️ Must be before UseAuthorization
 app.UseAuthorization();
 app.UseStaticFiles();
+app.UseCors("AllowFrontEnd"); // ✅ Apply CORS policy
+app.UseMiddleware<ErrorHandlingMiddleware>(); // ✅ Custom error handling middleware
 app.MapControllers(); // ✅ Route to controllers like AuthController
 
 app.Run();
