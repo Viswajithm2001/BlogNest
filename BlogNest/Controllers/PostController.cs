@@ -31,16 +31,35 @@ namespace BlogNest.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetAllPosts()
+        public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetAllPosts(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10,
+        [FromQuery] string? search = null)
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            var posts = await _dbContext.Posts
+            var query = _dbContext.Posts
                 .Include(p => p.User)
                 .Include(p => p.Comments)
                     .ThenInclude(c => c.User)
-                .Where(p => p.User.IsPublic || p.UserId.ToString() == userId)
+                .Include(p => p.Tags)
+                .Where(p => p.User.IsPublic || p.UserId.ToString() == userId);
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var normalizedSearch = search.Trim().ToLowerInvariant();
+                query = query.Where(p =>
+                    p.Title.ToLower().Contains(normalizedSearch) ||
+                    p.Content.ToLower().Contains(normalizedSearch) ||
+                    p.Tags.Any(t => t.Name.ToLower().Contains(normalizedSearch)));
+            }
+
+            var totalItems = await query.CountAsync();
+
+            var posts = await query
                 .OrderByDescending(p => p.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(p => new PostResponseDto
                 {
                     Id = p.Id,
@@ -65,8 +84,18 @@ namespace BlogNest.Controllers
                 })
                 .ToListAsync();
 
-            return Ok(posts);
+            var response = new
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                Posts = posts
+            };
+
+            return Ok(response);
         }
+
 
 
 
@@ -305,6 +334,44 @@ namespace BlogNest.Controllers
 
             await _dbContext.SaveChangesAsync();
             return NoContent();
+        }
+        [HttpPost("{postId:guid}/upload-image")]
+        public async Task<IActionResult> UploadImage(Guid postId, IFormFile image)
+        {
+            if (image == null || image.Length == 0)
+                return BadRequest("No image file provided.");
+
+            var post = await _dbContext.Posts.FindAsync(postId);
+            if (post == null)
+                return NotFound("Post not found.");
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (post.UserId.ToString() != userId)
+                return Forbid();
+
+            // Validate file type (optional)
+            var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+            if (!allowedTypes.Contains(image.ContentType))
+                return BadRequest("Unsupported image format.");
+
+            // Create unique filename and save path
+            var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+            if (!Directory.Exists(uploadsFolder))
+                Directory.CreateDirectory(uploadsFolder);
+
+            var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+            var filePath = Path.Combine(uploadsFolder, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await image.CopyToAsync(stream);
+            }
+
+            // Save relative image URL to post
+            post.ImageUrl = $"/uploads/{fileName}";
+            await _dbContext.SaveChangesAsync();
+
+            return Ok(new { imageUrl = post.ImageUrl });
         }
 
         // DELETE: api/posts/{id}
