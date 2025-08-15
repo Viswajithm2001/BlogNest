@@ -66,11 +66,14 @@ npm install axios
 ## **7. Project Folder Structure**
 ```
 src/
- ├─ components/   # Reusable UI elements (Navbar, Footer, etc.)
- ├─ pages/        # Route-specific components (Home, Login, Register, Posts)
- ├─ services/     # API and authentication helper functions
- ├─ App.tsx       # Root component
- └─ main.tsx      # App entry point
+  ├── components/   → Reusable UI parts (Navbar, Button, FormInput, etc.)
+  ├── pages/        → Each page’s UI (Home, Login, BlogDetails, etc.)
+  ├── context/      → Global state using React Context API
+  ├── services/     → API calls using Axios
+  ├── styles/       → Global styles (if needed)
+  ├── App.tsx       → Main app component
+  ├── index.css     → Tailwind base styles
+  └── main.tsx      → Entry point of React app
 ```
 
 ---
