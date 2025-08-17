@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
     {
         policy.AllowAnyHeader()
               .AllowAnyMethod()
-              .WithOrigins("http://localhost:3000") // Adjust to your frontend URL
+              .WithOrigins("http://localhost:5173") // Adjust to your frontend URL
               .AllowCredentials();
     });
 });
@@ -38,6 +38,8 @@ builder.Services.AddScoped<IAuthService, AuthService>(); // ✔ Make sure this m
 builder.Services.AddControllers()
     .AddJsonOptions(x =>
         x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
+builder.Services.AddControllers().AddJsonOptions(options =>
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true); // Optional: Use original property names
 // JWT Authentication setup
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 builder.Services.AddAuthentication(options =>
