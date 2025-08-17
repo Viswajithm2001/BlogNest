@@ -281,11 +281,15 @@ namespace BlogNest.Controllers
         // PUT: api/posts/{id}
         // TODO: Add [Authorize] and owner-check logic later
         [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdatePost(Guid id, [FromBody] UpdatePostDto request)
+        public async Task<IActionResult> UpdatePost(
+            Guid id,
+            [FromForm] UpdatePostDto request,
+            [FromForm] IFormFile? image = null,
+            [FromForm] bool deleteImage = false)
         {
             var post = await _dbContext.Posts
-                .Include(p => p.Tags)
-                .FirstOrDefaultAsync(p => p.Id == id);
+            .Include(p => p.Tags)
+            .FirstOrDefaultAsync(p => p.Id == id);
 
             if (post == null) return NotFound();
 
@@ -295,6 +299,43 @@ namespace BlogNest.Controllers
             if (!string.IsNullOrWhiteSpace(request.Title)) post.Title = request.Title;
             if (!string.IsNullOrWhiteSpace(request.Content)) post.Content = request.Content;
 
+            // Handle image update or deletion
+            if (deleteImage && !string.IsNullOrEmpty(post.ImageUrl))
+            {
+                var filePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", post.ImageUrl.TrimStart('/'));
+                if (System.IO.File.Exists(filePath))
+                    System.IO.File.Delete(filePath);
+                post.ImageUrl = null;
+            }
+            else if (image != null && image.Length > 0)
+            {
+                var allowedTypes = new[] { "image/jpeg", "image/png", "image/gif" };
+                if (!allowedTypes.Contains(image.ContentType))
+                    return BadRequest("Unsupported image format.");
+
+                // Delete old image if exists
+                if (!string.IsNullOrEmpty(post.ImageUrl))
+                {
+                    var oldPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", post.ImageUrl.TrimStart('/'));
+                    if (System.IO.File.Exists(oldPath))
+                        System.IO.File.Delete(oldPath);
+                }
+
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(image.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await image.CopyToAsync(stream);
+                }
+
+                post.ImageUrl = $"/uploads/{fileName}";
+            }
+
             if (request.Tags != null)
             {
                 var normalized = request.Tags
@@ -303,16 +344,13 @@ namespace BlogNest.Controllers
                     .Distinct()
                     .ToList();
 
-                // Load all existing tags used in normalized list
                 var existing = await _dbContext.Tags
                     .Where(t => normalized.Contains(t.Name.ToLower()))
                     .ToListAsync();
 
-                // Remove tags that are not in new normalized set
                 var toRemove = post.Tags.Where(t => !normalized.Contains(t.Name.ToLower())).ToList();
                 foreach (var r in toRemove) post.Tags.Remove(r);
 
-                // Add new tags
                 foreach (var name in normalized)
                 {
                     if (post.Tags.Any(t => t.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
