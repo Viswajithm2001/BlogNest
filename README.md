@@ -95,3 +95,42 @@
 - **Final QA**  
   - End-to-end testing  
   - Security checks  
+---
+## 🚀 Future Enhancements
+
+The following features are planned for future versions of **BlogNest**:
+
+- **🔑 Update Password**
+  - Allow users to update/change their password after logging in.
+  - Validate old password before setting new one.
+
+- **📧 Forgot / Reset Password**
+  - Implement "Forgot Password" flow using email/OTP or reset links.
+
+- **🖼️ Profile Enhancements**
+  - Allow updating profile details (bio, display name, etc.).
+  - Add cover photos in addition to profile pictures.
+
+- **👥 Follow System**
+  - Users can follow/unfollow each other.
+  - Show followers/following count on profile.
+
+- **🔔 Notifications**
+  - Real-time notifications for likes, comments, and new followers.
+
+- **💬 Comments Enhancements**
+  - Nested replies to comments.
+  - Edit/delete comments.
+
+- **❤️ Advanced Likes**
+  - Support reactions (👍❤️😂 etc.) instead of just likes.
+
+- **📊 Analytics**
+  - Show post views, trending posts, and user activity insights.
+
+- **🌐 Deployment**
+  - Deploy the app on cloud platforms (Azure/AWS/Heroku/Netlify).
+
+---
+
+📌 These enhancements will be gradually introduced after completing the core features (authentication, posts, comments, likes, and basic profile management).
