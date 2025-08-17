@@ -1,10 +1,9 @@
 import axios from "axios";
 import api from "./api";
-
 export interface AuthResponse {
   token: string;
     user: {
-        id: number;
+        id: string;
         username: string;
         email: string;
     };

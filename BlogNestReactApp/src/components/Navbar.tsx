@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-
+import "../index.css";
 const Navbar = () => {
   return (
     <nav className="bg-blue-600 text-white shadow-md">
