@@ -69,13 +69,17 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwagger();
 }
-
 app.UseHttpsRedirection();
-app.UseAuthentication(); // ⚠️ Must be before UseAuthorization
-app.UseAuthorization();
+
+// Apply CORS first
+app.UseCors("AllowFrontEnd"); 
+
+// Then authentication/authorization
+app.UseAuthentication(); 
+app.UseAuthorization(); 
+
 app.UseStaticFiles();
-app.UseCors("AllowFrontEnd"); // ✅ Apply CORS policy
-app.UseMiddleware<ErrorHandlingMiddleware>(); // ✅ Custom error handling middleware
-app.MapControllers(); // ✅ Route to controllers like AuthController
+app.UseMiddleware<ErrorHandlingMiddleware>();
+app.MapControllers();
 
 app.Run();

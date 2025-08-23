@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getAllPosts, type PaginatedPosts, type Post } from "../../services/post";
+import { getAllPosts, getPosts, type PaginatedPosts, type Post } from "../../services/post";
 
 const Posts: React.FC = () => {
   const [paginatedPosts , setPosts] = useState<PaginatedPosts | null>(null);
@@ -10,7 +10,7 @@ const Posts: React.FC = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const data = await getAllPosts();
+        const data = await getPosts();
         setPosts(data);
       } catch (err: any) {
         setError("Failed to load posts");
@@ -45,14 +45,16 @@ const Posts: React.FC = () => {
                 : post.content}
             </p>
             <div className="mt-2 flex flex-wrap">
-              {post.tags.map((tag) => (
-                <span
-                  key={tag.id}
-                  className="mr-2 mb-1 px-2 py-1 bg-gray-200 rounded"
-                >
-                  {tag.name}
-                </span>
-              ))}
+              {post.tags && post.tags.length > 0 && (
+                <div className="mb-4">
+                    <strong>Tags:</strong>{" "}
+                    {post.tags.map((tag: any, i: number) => (
+                        <span key={tag.id ?? i} className="mr-2 px-2 py-1 bg-gray-200 rounded">
+                            {typeof tag === "string" ? tag : tag.name}
+                        </span>
+                    ))}
+                </div>
+            )}
             </div>
             <p className="text-sm text-gray-500 mt-2">
               By {post.authorUsername} •{" "}

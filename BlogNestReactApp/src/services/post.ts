@@ -35,7 +35,20 @@ export interface PaginatedPosts {
   totalPages: number;
   posts: Post[];
 }
-
+export const getPosts = async () => {
+  try {
+    const token = localStorage.getItem("token"); // get token from login
+    const response = await api.get("/post", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (err: any) {
+    console.error("Error fetching posts:", err.response || err.message);
+    throw err;
+  }
+};
 /* Get paginated posts (matches GET /api/post) */
 export async function getAllPosts(
   page = 1,
@@ -48,7 +61,15 @@ export async function getAllPosts(
 
 /* Get single post (GET /api/post/{id}) */
 export async function getPostById(id: string): Promise<Post> {
-  const resp = await api.get(`/post/${id}`);
+  const token = localStorage.getItem("token"); // get stored token
+  if (!token) throw new Error("Not authenticated");
+
+  const resp = await api.get(`/post/${id}`, {
+    headers: {
+      Authorization: `Bearer ${token}`, // add token
+    },
+  });
+
   return resp.data;
 }
 

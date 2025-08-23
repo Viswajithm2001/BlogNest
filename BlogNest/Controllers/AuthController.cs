@@ -48,7 +48,7 @@ namespace BlogNest.Controllers
             {
                 return Unauthorized("Invalid username or password");
             }
-            return Ok(new { Token = token });
+            return Ok(new { Token = token, userLoginDto.Username });
         }
         [HttpPut("privacy")]
         [Authorize]

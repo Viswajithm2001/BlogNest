@@ -67,7 +67,7 @@ namespace BlogNest.Controllers
             return CreatedAtAction(nameof(GetCommentsByPost), new { postId = comment.PostId }, responseDto);
         }
 
-        [HttpGet("post/{postId:guid}")]
+        [HttpGet("{postId:guid}")]
         public async Task<ActionResult<IEnumerable<CommentResponseDto>>> GetCommentsByPost(Guid postId)
         {
             var comments = await _dbContext.Comments
