@@ -1,58 +1,38 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from "react";
+import { Login, type AuthResponse } from "../services/auth";
+import { setToken, clearToken } from "../services/storage";
 
-interface User {
-  username: string;
-  profilePictureUrl?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  login: (userData: User) => void;
+type AuthState = {
+  user: AuthResponse["user"] | null;
+  login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  isAuthenticated: boolean;
-}
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthState | undefined>(undefined);
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    // Initialize from localStorage
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
+export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const [user, setUser] = useState<AuthResponse["user"] | null>(null);
 
-  const isAuthenticated = !!user;
-
-  const login = (userData: User) => {
-    setUser(userData);
-    localStorage.setItem('user', JSON.stringify(userData));
+  const login = async (username: string, password: string) => {
+    const { token, user } = await Login(username, password); // call API
+    setToken(token);                                         // save token
+    setUser(user);                                           // update state
   };
 
   const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+    clearToken();  // remove token
+    setUser(null); // reset state
   };
 
-  // Persist authentication state
-  useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated }}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-};
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
+  return ctx;
+}
