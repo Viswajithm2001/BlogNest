@@ -1,104 +1,63 @@
-// src/pages/Login/Login.tsx
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useForm } from "react-hook-form";
+import { useAuth } from "../../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import "../../styles/auth.css";
 
-const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+type FormData = {
+  username: string;
+  password: string;
+};
+
+export default function Login() {
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
   const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
+  const onSubmit = async (data: FormData) => {
     try {
-      const response = await mockLoginApi(username, password);
-      login({
-        username: response.username,
-        profilePictureUrl: response.profilePictureUrl
-      });
-      navigate('/');
-    } catch (err) {
-      setError('Invalid username or password');
+      await login(data.username, data.password);
+      navigate("/posts");
+    } catch (error) {
+      console.error("Login failed:", error);
     }
-  };
-
-  const mockLoginApi = async (username: string, password: string) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    if (username && password) {
-      return { username, profilePictureUrl: 'https://i.pravatar.cc/40' };
-    }
-    throw new Error('Invalid credentials');
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-100 to-blue-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8 space-y-6">
-        <div className="text-center">
-          <h2 className="text-3xl font-extrabold text-gray-900 mb-2">
-            Welcome Back
-          </h2>
-          <p className="text-sm text-gray-500">
-            Sign in to access your BlogNest account
-          </p>
-        </div>
+    <div className="auth-container">
+      <div className="auth-card">
+        <h1 className="auth-title">Login</h1>
 
-        <form className="space-y-5" onSubmit={handleSubmit}>
-          {error && (
-            <div className="rounded-md bg-red-50 p-3">
-              <p className="text-sm text-red-700 text-center">{error}</p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <input
-                type="text"
-                required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent sm:text-sm"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-
-            <div>
-              <input
-                type="password"
-                required
-                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent sm:text-sm"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {/* Username */}
           <div>
-            <button
-              type="submit"
-              className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-blue-500 transition-all"
-            >
-              Sign In
-            </button>
+            <label className="auth-label">Username</label>
+            <input
+              className="auth-input"
+              type="text"
+              placeholder="Enter your username"
+              {...register("username", { required: "Username is required" })}
+            />
+            {errors.username && <p className="auth-error">{errors.username.message}</p>}
           </div>
-        </form>
 
-        <div className="text-center text-sm text-gray-500">
-          Don't have an account?{' '}
-          <a
-            href="/register"
-            className="font-medium text-blue-600 hover:text-blue-700"
-          >
-            Sign Up
-          </a>
-        </div>
+          {/* Password */}
+          <div>
+            <label className="auth-label">Password</label>
+            <input
+              className="auth-input"
+              type="password"
+              placeholder="••••••••"
+              {...register("password", { required: "Password is required" })}
+            />
+            {errors.password && <p className="auth-error">{errors.password.message}</p>}
+          </div>
+
+          {/* Submit */}
+          <button type="submit" disabled={isSubmitting} className="auth-button">
+            {isSubmitting ? "Logging in..." : "Login"}
+          </button>
+        </form>
       </div>
     </div>
   );
-};
-
-export default Login;
+}
