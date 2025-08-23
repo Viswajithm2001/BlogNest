@@ -2,11 +2,12 @@ import axios from "axios";
 import api from "./api";
 export interface AuthResponse {
   token: string;
-    user: {
-        id: string;
-        username: string;
-        email: string;
-    };
+  username:string;
+    // user: {
+    //     id: string;
+    //     username: string;
+    //     email: string;
+    // };
 }
 
 export async function Login(username: string, password: string): Promise<AuthResponse> {

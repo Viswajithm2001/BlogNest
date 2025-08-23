@@ -1,28 +1,44 @@
-import { createContext, useContext, useState } from "react";
-import { Login, type AuthResponse } from "../services/auth";
-import { setToken, clearToken } from "../services/storage";
+// src/context/AuthContext.tsx
+import { createContext, useContext, useState, useEffect } from "react";
+import { Login as loginApi, type AuthResponse } from "../services/auth"; // import your auth.ts Login
 
-type AuthState = {
-  user: AuthResponse["user"] | null;
+type AuthContextType = {
+  user: string | null;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 };
 
-const AuthContext = createContext<AuthState | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  login: async () => {},
+  logout: () => {},
+});
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthResponse["user"] | null>(null);
+  const [user, setUser] = useState<string | null>(null);
 
-  const login = async (username: string, password: string) => {
-    const { token, user } = await Login(username, password); // call API
-    setToken(token);                                         // save token
-    setUser(user);                                           // update state
-  };
+  useEffect(() => {
+    const storedUser = localStorage.getItem("username");
+    if (storedUser) setUser(storedUser);
+  }, []);
 
-  const logout = () => {
-    clearToken();  // remove token
-    setUser(null); // reset state
-  };
+ async function login(username: string, password: string) {
+  // Clear token first just in case
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  
+  const data: AuthResponse = await loginApi(username, password);
+  localStorage.setItem("token", data.token);
+  localStorage.setItem("username", data.username);
+  setUser(data.username);
+}
+
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("username");
+  setUser(null);
+}
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
@@ -31,8 +47,4 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
-  return ctx;
-}
+export const useAuth = () => useContext(AuthContext);
