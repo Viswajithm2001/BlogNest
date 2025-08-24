@@ -65,6 +65,15 @@ namespace BlogNest.Controllers
 
             return Ok(new { message = "Post unliked successfully." });
         }
+        [HttpGet("user-liked/{postId}")]
+        public IActionResult IsPostLikedByUser(Guid postId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            bool liked = _dbContext.Likes.Any(l => l.PostId == postId && l.UserId == Guid.Parse(userId));
+            return Ok(new { liked });
+        }
 
         [HttpGet("count/{postId}")]
         [AllowAnonymous] // Optional: anyone can see like count
