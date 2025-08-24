@@ -13,7 +13,7 @@ export default function Login() {
   const onSubmit = async (data: FormData) => {
     try {
       await login(data.username, data.password);
-      navigate("/posts");
+      navigate("/home");
     } catch (err) {
       alert("❌ Invalid username or password");
     }

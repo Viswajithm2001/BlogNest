@@ -7,14 +7,14 @@ const Navbar = () => {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const navigate = useNavigate();
-const handleLogout = () => {
-  const confirmed = window.confirm("Are you sure you want to logout?");
-  if (confirmed) {
-    logout();
-    setDropdownOpen(false);
-    navigate("/login");
-  }
-};
+  const handleLogout = () => {
+    const confirmed = window.confirm("Are you sure you want to logout?");
+    if (confirmed) {
+      logout();
+      setDropdownOpen(false);
+      navigate("/login");
+    }
+  };
 
 
   return (
@@ -33,24 +33,19 @@ const handleLogout = () => {
               {/* Profile button */}
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className="flex items-center space-x-2 hover:text-gray-200 focus:outline-none"
+                className="flex items-center space-x-2 px-3 py-1 rounded-lg bg-gray-700 text-white hover:bg-gray-600 transition-colors duration-200 focus:outline-none"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
+                  fill="currentColor"
                   viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
                   className="w-5 h-5"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M15.75 7.5a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.5 20.25a8.25 8.25 0 1115 0v.75H4.5v-.75z"
-                  />
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
                 </svg>
-                <span>{user}</span>
+                <span className="font-medium">{user}</span>
               </button>
+
 
               {/* Dropdown menu */}
               {dropdownOpen && (
