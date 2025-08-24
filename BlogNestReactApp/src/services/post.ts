@@ -10,6 +10,11 @@ export interface CommentResponse {
   userId: string;
   authorUsername?: string | null;
 }
+export interface CreatePostDto {
+  title: string;
+  content: string;
+  tags?: string[];
+}
 
 export interface Post {
   id: string;
@@ -86,15 +91,20 @@ export async function getPostsByTag(tag: string): Promise<Post[]> {
 }
 
 /* Create post (POST /api/post) — backend expects JSON CreatePostDto */
-export async function createPost(title: string, content: string, tags: string[]): Promise<Post> {
-  const payload = {
-    title,    // case-insensitive; backend DTO will bind
-    content,
-    tags
-  };
-  const resp = await api.post("/post", payload);
-  return resp.data; // created PostResponseDto (includes Id)
-}
+export const createPost = async (data: CreatePostDto) => {
+  try {
+    const token = localStorage.getItem("token"); // get token from login
+    const response = await api.post("/post", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    return response.data;
+  } catch (err: any) {
+    console.error("Error creating post:", err.response || err.message);
+    throw err;
+  }
+};
 
 /* Upload image for an existing post (POST /api/post/{postId}/upload-image) */
 export async function uploadPostImage(postId: string, file: File): Promise<{ imageUrl: string }> {

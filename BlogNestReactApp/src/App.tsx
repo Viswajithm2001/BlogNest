@@ -6,6 +6,7 @@ import Posts from "./pages/Posts/Posts";
 import PostDetails from "./pages/Posts/PostDetails";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register"
+import NewPost from './pages/Posts/NewPost';
 
 const App:React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const App:React.FC = () => {
       <Route path='login' element={<Login />} />
       <Route path='register' element={<Register />} />
       <Route path='posts' element={<Posts />} />
+      <Route path='posts/new' element={<NewPost />} />
       <Route path='posts/:id' element={<PostDetails />} />
       {/* Add more routes as needed */}
     </Route>
