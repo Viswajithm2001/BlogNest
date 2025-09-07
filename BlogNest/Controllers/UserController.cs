@@ -29,6 +29,10 @@ namespace BlogNest.Controllers
             _env = env;
         }
 
+        /// <summary>
+        /// Retrieves the profile information of the currently authenticated user.
+        /// </summary>
+        /// <returns>Returns Ok with user details if found, Unauthorized if not authenticated, or NotFound if user doesn't exist.</returns>
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
@@ -50,7 +54,12 @@ namespace BlogNest.Controllers
 
             return Ok(user);
         }
-        
+
+        /// <summary>
+        /// Updates the profile information of the currently authenticated user.
+        /// </summary>
+        /// <param name="dto">The DTO containing the updated user information (username, email, and public status).</param>
+        /// <returns>Returns Ok with updated user details if successful, Unauthorized if not authenticated, or NotFound if user doesn't exist.</returns>
         [HttpPut("update-profile")]
         [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UserUpdateDto dto)

@@ -26,6 +26,10 @@ namespace BlogNest.Controllers
         {
             _dbContext = dbContext;
         }
+        /// <summary>
+        /// Returns a default set of sample posts for testing purposes.
+        /// </summary>
+        /// <returns>Returns Ok with an array of sample posts.</returns>
         [HttpGet("default")]
         public IActionResult GetDefault()
         {
@@ -38,6 +42,13 @@ namespace BlogNest.Controllers
             return Ok(posts);
         }
 
+        /// <summary>
+        /// Retrieves a paginated list of all posts with optional search functionality.
+        /// </summary>
+        /// <param name="page">The page number to retrieve (default: 1).</param>
+        /// <param name="pageSize">The number of posts per page (default: 10).</param>
+        /// <param name="search">Optional search term to filter posts by title, content, or tags.</param>
+        /// <returns>Returns Ok with paginated list of posts including their comments and tags.</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetAllPosts(
         [FromQuery] int page = 1,
@@ -107,6 +118,11 @@ namespace BlogNest.Controllers
 
 
 
+        /// <summary>
+        /// Retrieves all posts by a specific user.
+        /// </summary>
+        /// <param name="accountId">The unique identifier of the user whose posts to retrieve.</param>
+        /// <returns>Returns Ok with list of posts if user is public or requesting own posts, Forbid if trying to access private user's posts, or NotFound if user doesn't exist.</returns>
         [HttpGet("user/{accountId:guid}")]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetPostsByUser(Guid accountId)
         {
@@ -141,6 +157,11 @@ namespace BlogNest.Controllers
             return Ok(posts);
         }
 
+        /// <summary>
+        /// Retrieves a specific post by its ID, including comments and tags.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post to retrieve.</param>
+        /// <returns>Returns Ok with post details if found and accessible, NotFound if post doesn't exist, or Unauthorized if trying to access private user's post.</returns>
         [HttpGet("{id:guid}")]
         public async Task<ActionResult<PostResponseDto>> GetPostById(Guid id)
         {
@@ -181,6 +202,11 @@ namespace BlogNest.Controllers
             return Ok(post);
         }
 
+        /// <summary>
+        /// Retrieves all posts that have a specific tag.
+        /// </summary>
+        /// <param name="tagName">The name of the tag to filter posts by.</param>
+        /// <returns>Returns Ok with list of posts that contain the specified tag, respecting user privacy settings.</returns>
         [HttpGet("tag/{tagName}")]
         public async Task<ActionResult<IEnumerable<PostResponseDto>>> GetPostsByTag(string tagName)
         {
@@ -216,6 +242,11 @@ namespace BlogNest.Controllers
             return Ok(posts);
         }
 
+        /// <summary>
+        /// Creates a new blog post with optional tags.
+        /// </summary>
+        /// <param name="request">The DTO containing the post data (title, content, and optional tags).</param>
+        /// <returns>Returns CreatedAtAction with the new post if successful, BadRequest if invalid data, or Unauthorized if not authenticated.</returns>
         [HttpPost]
         public async Task<ActionResult<PostResponseDto>> CreatePost([FromBody] CreatePostDto request)
         {
@@ -288,6 +319,14 @@ namespace BlogNest.Controllers
 
         // PUT: api/posts/{id}
         // TODO: Add [Authorize] and owner-check logic later
+        /// <summary>
+        /// Updates an existing blog post, including its content, tags, and image.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post to update.</param>
+        /// <param name="request">The DTO containing the updated post data.</param>
+        /// <param name="image">Optional image file to attach to the post.</param>
+        /// <param name="deleteImage">Flag indicating whether to delete the existing image.</param>
+        /// <returns>Returns NoContent if successful, NotFound if post doesn't exist, or Forbid if not post owner.</returns>
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> UpdatePost(
             Guid id,
@@ -381,6 +420,12 @@ namespace BlogNest.Controllers
             await _dbContext.SaveChangesAsync();
             return NoContent();
         }
+        /// <summary>
+        /// Uploads an image for a specific post.
+        /// </summary>
+        /// <param name="postId">The unique identifier of the post to attach the image to.</param>
+        /// <param name="image">The image file to upload.</param>
+        /// <returns>Returns Ok with image URL if successful, BadRequest if invalid file, NotFound if post doesn't exist, or Forbid if not post owner.</returns>
         [HttpPost("{postId:guid}/upload-image")]
         public async Task<IActionResult> UploadImage(Guid postId, IFormFile image)
         {
@@ -422,6 +467,11 @@ namespace BlogNest.Controllers
 
         // DELETE: api/posts/{id}
         // TODO: Add [Authorize] and owner-check logic later
+        /// <summary>
+        /// Deletes a specific blog post.
+        /// </summary>
+        /// <param name="id">The unique identifier of the post to delete.</param>
+        /// <returns>Returns NoContent if successful, NotFound if post doesn't exist, or Forbid if not post owner.</returns>
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {

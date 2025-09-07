@@ -28,6 +28,19 @@ namespace BlogNest.Controllers
             _dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Creates a new comment on a blog post.
+        /// </summary>
+        /// <param name="request">The comment creation data containing content and post ID.</param>
+        /// <returns>
+        /// 201 Created with the created comment data if successful,
+        /// 400 Bad Request if the comment data is invalid,
+        /// 401 Unauthorized if user is not authenticated,
+        /// 404 Not Found if the post or user doesn't exist.
+        /// </returns>
+        /// <remarks>
+        /// The comment's creation timestamp and user information are automatically set based on the authenticated user.
+        /// </remarks>
         [HttpPost]
         public async Task<IActionResult> CreateComment([FromBody] CreateCommentDto request)
         {
@@ -74,6 +87,19 @@ namespace BlogNest.Controllers
             return CreatedAtAction(nameof(GetCommentsByPost), new { postId = comment.PostId }, responseDto);
         }
 
+        /// <summary>
+        /// Retrieves all comments for a specific blog post.
+        /// </summary>
+        /// <param name="postId">The unique identifier of the post to get comments for.</param>
+        /// <returns>
+        /// 200 OK with the list of comments if found,
+        /// 404 Not Found if no comments exist for the post,
+        /// 401 Unauthorized if user is not authenticated.
+        /// </returns>
+        /// <remarks>
+        /// Comments are returned in descending order by creation date (newest first).
+        /// Each comment includes the author's username and creation timestamp.
+        /// </remarks>
         [HttpGet("{postId:guid}")]
         public async Task<ActionResult<IEnumerable<CommentResponseDto>>> GetCommentsByPost(Guid postId)
         {
@@ -98,6 +124,22 @@ namespace BlogNest.Controllers
             return Ok(comments);
         }
 
+        /// <summary>
+        /// Updates an existing comment's content.
+        /// </summary>
+        /// <param name="commentId">The unique identifier of the comment to update.</param>
+        /// <param name="request">The update data containing the new content.</param>
+        /// <returns>
+        /// 200 OK with the updated comment data if successful,
+        /// 400 Bad Request if the comment content is invalid,
+        /// 401 Unauthorized if user is not authenticated,
+        /// 403 Forbidden if user is not the comment author,
+        /// 404 Not Found if the comment doesn't exist.
+        /// </returns>
+        /// <remarks>
+        /// Only the original author of the comment can update it.
+        /// The creation timestamp is preserved, and only the content is updated.
+        /// </remarks>
         [HttpPut("{commentId:guid}")]
         public async Task<IActionResult> UpdateComment(Guid commentId, [FromBody] UpdateCommentDto request)
         {
@@ -107,8 +149,12 @@ namespace BlogNest.Controllers
             }
 
             var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var comment = await _dbContext.Comments.FindAsync(commentId);
+            if (requestingUserId == null)
+            {
+                return Unauthorized("User not authenticated.");
+            }
 
+            var comment = await _dbContext.Comments.FindAsync(commentId);
             if (comment == null)
             {
                 return NotFound("Comment not found.");
@@ -129,13 +175,31 @@ namespace BlogNest.Controllers
                 CreatedAt = comment.CreatedAt,
                 PostId = comment.PostId,
                 UserId = comment.UserId,
-                AuthorUsername = (await _dbContext.Users.FindAsync(comment.UserId))?.Username
+                AuthorUsername = (await _dbContext.Users.FindAsync(comment.UserId))?.Username ?? "Unknown User"
             });
         }
+        /// <summary>
+        /// Deletes an existing comment.
+        /// </summary>
+        /// <param name="commentId">The unique identifier of the comment to delete.</param>
+        /// <returns>
+        /// 204 No Content if deletion is successful,
+        /// 401 Unauthorized if user is not authenticated,
+        /// 403 Forbidden if user is not the comment author,
+        /// 404 Not Found if the comment doesn't exist.
+        /// </returns>
+        /// <remarks>
+        /// Only the original author of the comment can delete it.
+        /// Once deleted, the comment cannot be recovered.
+        /// </remarks>
         [HttpDelete("{commentId:guid}")]
         public async Task<IActionResult> DeleteComment(Guid commentId)
         {
             var requestingUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (requestingUserId == null)
+            {
+                return Unauthorized("User not authenticated.");
+            }
             var comment = await _dbContext.Comments.FindAsync(commentId);
 
             if (comment == null)

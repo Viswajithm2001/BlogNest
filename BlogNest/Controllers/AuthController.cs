@@ -24,6 +24,16 @@ namespace BlogNest.Controllers
         {
             _authService = authService;
         }
+        /// <summary>
+        /// Registers a new user in the system.
+        /// </summary>
+        /// <param name="userRegisterDto">The registration information containing username, email, and password.</param>
+        /// <returns>
+        /// 200 OK with the created user information if successful,
+        /// 400 Bad Request if registration data is invalid,
+        /// 409 Conflict if username/email already exists,
+        /// 500 Internal Server Error for unexpected errors.
+        /// </returns>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserRegisterDto userRegisterDto)
         {
@@ -47,6 +57,15 @@ namespace BlogNest.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Registration failed" });
             }
         }
+
+        /// <summary>
+        /// Authenticates a user and generates a JWT token.
+        /// </summary>
+        /// <param name="userLoginDto">The login credentials containing username and password.</param>
+        /// <returns>
+        /// 200 OK with JWT token and username if authentication succeeds,
+        /// 401 Unauthorized if credentials are invalid.
+        /// </returns>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
         {
@@ -57,6 +76,16 @@ namespace BlogNest.Controllers
             }
             return Ok(new { Token = token, userLoginDto.Username });
         }
+
+        /// <summary>
+        /// Updates the privacy setting of the authenticated user's profile.
+        /// </summary>
+        /// <param name="isPublic">True to make the profile public, false to make it private.</param>
+        /// <returns>
+        /// 204 No Content if update succeeds,
+        /// 404 Not Found if user doesn't exist,
+        /// 401 Unauthorized if user is not authenticated.
+        /// </returns>
         [HttpPut("privacy")]
         [Authorize]
         public async Task<IActionResult> UpdatePrivacy(bool isPublic)
@@ -69,6 +98,16 @@ namespace BlogNest.Controllers
             }
             return NoContent();
         }
+
+        /// <summary>
+        /// Resets a user's password without requiring authentication.
+        /// </summary>
+        /// <param name="dto">The password reset information containing the new password and confirmation.</param>
+        /// <returns>
+        /// 200 OK if password reset succeeds,
+        /// 400 Bad Request if passwords don't match,
+        /// 404 Not Found if user with provided email doesn't exist.
+        /// </returns>
         [HttpPut("reset-password")]
         [AllowAnonymous]
         public async Task<IActionResult> ResetPassword([FromBody] UpdatePasswordDto dto)

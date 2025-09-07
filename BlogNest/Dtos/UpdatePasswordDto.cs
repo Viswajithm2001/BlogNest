@@ -13,6 +13,9 @@ namespace BlogNest.Dtos
         /// Gets or sets the confirm password for the user
         /// </summary>
         public string ConfirmPassword { get; set; }
+        /// <summary>
+        /// Gets or sets the email of the user.
+        /// </summary>
         public string Email { get; set; }
     }
 }
