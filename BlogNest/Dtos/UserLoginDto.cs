@@ -1,8 +1,18 @@
 namespace BlogNest.Dtos
 {
+    /// <summary>
+    /// Data transfer object for user login requests.
+    /// </summary>
     public class UserLoginDto
     {
-        public string Username { get; set; }
-        public string Password { get; set; }
+        /// <summary>
+        /// Gets or sets the username for authentication.
+        /// </summary>
+        public required string Username { get; set; }
+
+        /// <summary>
+        /// Gets or sets the password for authentication.
+        /// </summary>
+        public required string Password { get; set; }
     }
 }

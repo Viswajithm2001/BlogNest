@@ -8,12 +8,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlogNest.Controllers
 {
+    /// <summary>
+    /// Controller for managing blog posts, including creation, retrieval, updating, and deletion of posts.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize] // Optional: requires JWT token
     public class PostController : ControllerBase
     {
         private readonly BlogDbContext _dbContext;
+
+        /// <summary>
+        /// Initializes a new instance of the PostController.
+        /// </summary>
+        /// <param name="dbContext">The database context for accessing post-related data.</param>
         public PostController(BlogDbContext dbContext)
         {
             _dbContext = dbContext;

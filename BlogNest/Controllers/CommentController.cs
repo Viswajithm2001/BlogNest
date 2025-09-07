@@ -9,6 +9,9 @@ using BlogNest.Dtos;
 using System.Security.Claims;
 namespace BlogNest.Controllers
 {
+    /// <summary>
+    /// Controller for managing comments on blog posts, including creation, retrieval, updating, and deletion of comments.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize] // Optional: requires JWT token
@@ -16,6 +19,10 @@ namespace BlogNest.Controllers
     {
         private readonly BlogDbContext _dbContext;
 
+        /// <summary>
+        /// Initializes a new instance of the CommentController.
+        /// </summary>
+        /// <param name="dbContext">The database context for accessing comment-related data.</param>
         public CommentController(BlogDbContext dbContext)
         {
             _dbContext = dbContext;

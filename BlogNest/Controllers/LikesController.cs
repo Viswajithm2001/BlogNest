@@ -6,6 +6,9 @@ using BlogNest.Models;
 using System.Security.Claims;
 namespace BlogNest.Controllers
 {
+    /// <summary>
+    /// Controller for managing post likes functionality, including adding and removing likes on posts.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize] // Optional: requires JWT token
@@ -13,6 +16,10 @@ namespace BlogNest.Controllers
     {
         private readonly BlogDbContext _dbContext;
 
+        /// <summary>
+        /// Initializes a new instance of the LikesController.
+        /// </summary>
+        /// <param name="dbContext">The database context for accessing like-related data.</param>
         public LikesController(BlogDbContext dbContext)
         {
             _dbContext = dbContext;

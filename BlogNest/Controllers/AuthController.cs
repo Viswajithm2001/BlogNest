@@ -7,12 +7,19 @@ using System.Security.Claims;
 
 namespace BlogNest.Controllers
 {
+    /// <summary>
+    /// Controller responsible for handling authentication-related operations such as user registration and login.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
 
+        /// <summary>
+        /// Initializes a new instance of the AuthController.
+        /// </summary>
+        /// <param name="authService">The authentication service for handling user authentication operations.</param>
         public AuthController(IAuthService authService)
         {
             _authService = authService;

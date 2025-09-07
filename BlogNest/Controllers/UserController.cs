@@ -7,6 +7,9 @@ using BlogNest.Dtos;
 
 namespace BlogNest.Controllers
 {
+    /// <summary>
+    /// Controller for managing user-related operations, including profile management and user settings.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Authorize] // user must be logged in
@@ -15,6 +18,11 @@ namespace BlogNest.Controllers
         private readonly BlogDbContext _context;
         private readonly IWebHostEnvironment _env;
 
+        /// <summary>
+        /// Initializes a new instance of the UserController.
+        /// </summary>
+        /// <param name="context">The database context for accessing user-related data.</param>
+        /// <param name="env">The web host environment for managing user-related files.</param>
         public UserController(BlogDbContext context, IWebHostEnvironment env)
         {
             _context = context;
