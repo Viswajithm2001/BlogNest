@@ -1,7 +1,7 @@
 # 📝 BlogNest
 
-![.NET Badge](https://img.shields.io/badge/.NET-6-blue)  
-![React Badge](https://img.shields.io/badge/React-18-blue)  
+![.NET Badge](https://img.shields.io/badge/.NET-9-blue)  
+![React Badge](https://img.shields.io/badge/React-19-blue)  
 ![PostgreSQL Badge](https://img.shields.io/badge/PostgreSQL-15-blue)
 
 A **full-stack blog platform** built with **ASP.NET Core Web API**, **React + TypeScript**, **Tailwind CSS**, and **PostgreSQL**. Users can register, login, create/edit posts, comment, like, and reset passwords.
