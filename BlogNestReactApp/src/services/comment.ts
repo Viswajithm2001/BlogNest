@@ -17,7 +17,6 @@ export interface CreateCommentDto {
 
 export async function getCommentsByPost(postId: string): Promise<Comment[]> {
     const token = localStorage.getItem("token");
-    console.log(postId);
   const resp = await api.get(`/post/${postId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });

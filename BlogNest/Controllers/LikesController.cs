@@ -25,6 +25,11 @@ namespace BlogNest.Controllers
             _dbContext = dbContext;
         }
 
+        /// <summary>
+        /// Adds a like to a post for the currently authenticated user.
+        /// </summary>
+        /// <param name="postId">The unique identifier of the post to like.</param>
+        /// <returns>Returns Ok with success message if the like is added, BadRequest if already liked, or NotFound if post/user not found.</returns>
         [HttpPost("like/{postId}")]
         public async Task<IActionResult> LikePost(Guid postId)
         {
@@ -56,6 +61,11 @@ namespace BlogNest.Controllers
 
             return Ok(new { message = "Post liked successfully." });
         }
+        /// <summary>
+        /// Removes a like from a post for the currently authenticated user.
+        /// </summary>
+        /// <param name="postId">The unique identifier of the post to unlike.</param>
+        /// <returns>Returns Ok with success message if the like is removed, or NotFound if the like doesn't exist.</returns>
         [HttpDelete("unlike/{postId}")]
         public async Task<IActionResult> UnlikePost(Guid postId)
         {
@@ -72,6 +82,11 @@ namespace BlogNest.Controllers
 
             return Ok(new { message = "Post unliked successfully." });
         }
+        /// <summary>
+        /// Checks if the currently authenticated user has liked a specific post.
+        /// </summary>
+        /// <param name="postId">The unique identifier of the post to check.</param>
+        /// <returns>Returns Ok with a boolean indicating if the user has liked the post, or Unauthorized if not authenticated.</returns>
         [HttpGet("user-liked/{postId}")]
         public IActionResult IsPostLikedByUser(Guid postId)
         {
@@ -82,6 +97,11 @@ namespace BlogNest.Controllers
             return Ok(new { liked });
         }
 
+        /// <summary>
+        /// Gets the total number of likes for a specific post.
+        /// </summary>
+        /// <param name="postId">The unique identifier of the post.</param>
+        /// <returns>Returns Ok with the post ID and its like count.</returns>
         [HttpGet("count/{postId}")]
         [AllowAnonymous] // Optional: anyone can see like count
         public IActionResult GetLikeCount(Guid postId)

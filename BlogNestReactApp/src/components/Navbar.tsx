@@ -27,7 +27,10 @@ const Navbar = () => {
           <Link to="/posts" className="hover:text-gray-200">Posts</Link>
 
           {!user ? (
-            <Link to="/login" className="hover:text-gray-200">Login</Link>
+            <>
+              <Link to="/register" className="hover:text-gray-200">Register</Link>
+              <Link to="/login" className="hover:text-gray-200">Login</Link>
+            </>
           ) : (
             <div className="relative">
               {/* Profile button */}

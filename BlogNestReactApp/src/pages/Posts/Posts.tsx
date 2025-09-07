@@ -13,7 +13,7 @@ const Posts: React.FC = () => {
         const data = await getPosts();
         setPosts(data);
       } catch (err: any) {
-        setError("Failed to load posts");
+        setError("Please login to view posts");
       } finally {
         setLoading(false);
       }
@@ -23,7 +23,7 @@ const Posts: React.FC = () => {
   }, []);
 
   if (loading) return <p>Loading posts...</p>;
-  if (error) return <p className="text-red-500">{error}</p>;
+  if (error) return <h1 className="text-red-600 font-bold text-xl mt-4">{error}</h1>;
 
   return (
     <div className="max-w-3xl mx-auto mt-8">

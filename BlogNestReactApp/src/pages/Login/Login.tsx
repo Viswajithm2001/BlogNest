@@ -1,7 +1,7 @@
 // src/pages/Login/Login.tsx
 import { useForm } from "react-hook-form";
 import { useAuth } from "../../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 type FormData = { username: string; password: string };
 
@@ -42,6 +42,17 @@ export default function Login() {
           >
             Login
           </button>
+          <p className="text-sm mt-0">
+            <Link to="/resetpwd" className="text-blue-600 hover:underline">
+            Forgot password
+            </Link>
+          </p>
+          <p className="text-center text-sm mt-4">
+            New here?{" "}
+            <Link to="/register" className="text-blue-600 hover:underline">
+              Create an account
+            </Link>
+          </p>
         </form>
       </div>
     </div>

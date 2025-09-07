@@ -10,9 +10,34 @@ namespace BlogNest.Services
 {
     public interface IAuthService
     {
-        Task<UserResponseDto> RegisterAsync(UserRegisterDto userRegisterDto);
-        Task<string> LoginAsync(UserLoginDto userLoginDto);
-        Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic);
+    /// <summary>
+    /// Registers a new user with the provided registration details.
+    /// </summary>
+    /// <param name="userRegisterDto">The DTO containing user registration information.</param>
+    /// <returns>Returns a UserResponseDto with the registered user's details.</returns>
+    Task<UserResponseDto> RegisterAsync(UserRegisterDto userRegisterDto);
+
+    /// <summary>
+    /// Authenticates a user and returns a JWT token if successful.
+    /// </summary>
+    /// <param name="userLoginDto">The DTO containing user login credentials.</param>
+    /// <returns>Returns a JWT token string if login is successful, otherwise null.</returns>
+    Task<string> LoginAsync(UserLoginDto userLoginDto);
+
+    /// <summary>
+    /// Updates the privacy setting of a user account.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="isPublic">The new privacy status.</param>
+    /// <returns>Returns true if the update was successful, false otherwise.</returns>
+    Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic);
+
+    /// <summary>
+    /// Resets the password for a user identified by email.
+    /// </summary>
+    /// <param name="dto">The DTO containing the email and new password.</param>
+    /// <returns>Returns true if the password was reset successfully, false otherwise.</returns>
+    Task<bool> ResetPasswordAsync(UpdatePasswordDto dto);
     }
     public class AuthService : IAuthService
     {
@@ -24,7 +49,12 @@ namespace BlogNest.Services
             _context = context;
             _configuration = configuration;
         }
-        public async Task<UserResponseDto> RegisterAsync(UserRegisterDto userRegisterDto)
+    /// <summary>
+    /// Registers a new user and saves them to the database.
+    /// </summary>
+    /// <param name="userRegisterDto">The DTO containing user registration information.</param>
+    /// <returns>Returns a UserResponseDto with the registered user's details.</returns>
+    public async Task<UserResponseDto> RegisterAsync(UserRegisterDto userRegisterDto)
         {
             var user = new User
             {
@@ -48,7 +78,12 @@ namespace BlogNest.Services
                 Email = user.Email
             };
         }
-        public async Task<string> LoginAsync(UserLoginDto userLoginDto)
+    /// <summary>
+    /// Authenticates a user and returns a JWT token if credentials are valid.
+    /// </summary>
+    /// <param name="userLoginDto">The DTO containing user login credentials.</param>
+    /// <returns>Returns a JWT token string if login is successful, otherwise null.</returns>
+    public async Task<string> LoginAsync(UserLoginDto userLoginDto)
         {
             var user = await _context.Users
                 .FirstOrDefaultAsync(u => u.Username == userLoginDto.Username);
@@ -61,7 +96,13 @@ namespace BlogNest.Services
             return GenerateJwtToken(user);
         }
         
-        public async Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic)
+    /// <summary>
+    /// Updates the privacy setting of a user account.
+    /// </summary>
+    /// <param name="userId">The unique identifier of the user.</param>
+    /// <param name="isPublic">The new privacy status.</param>
+    /// <returns>Returns true if the update was successful, false otherwise.</returns>
+    public async Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic)
         {
             var user = await _context.Users.FindAsync(userId);
             if (user == null) return false;
@@ -70,7 +111,28 @@ namespace BlogNest.Services
             await _context.SaveChangesAsync();
             return true;
         }
-        private string GenerateJwtToken(User user)
+    /// <summary>
+    /// Resets the password for a user identified by email.
+    /// </summary>
+    /// <param name="dto">The DTO containing the email and new password.</param>
+    /// <returns>Returns true if the password was reset successfully, false otherwise.</returns>
+    public async Task<bool> ResetPasswordAsync(UpdatePasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null) return false;
+            // Hash new password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    /// <summary>
+    /// Generates a JWT token for the specified user.
+    /// </summary>
+    /// <param name="user">The user for whom to generate the token.</param>
+    /// <returns>Returns a JWT token string.</returns>
+    private string GenerateJwtToken(User user)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = jwtSettings["SecretKey"];

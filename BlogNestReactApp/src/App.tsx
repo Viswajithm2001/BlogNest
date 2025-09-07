@@ -7,6 +7,7 @@ import PostDetails from "./pages/Posts/PostDetails";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register"
 import NewPost from './pages/Posts/NewPost';
+import ResetPassword from './pages/Login/ResetPassword';
 
 const App:React.FC = () => {
   return (
@@ -17,6 +18,7 @@ const App:React.FC = () => {
       <Route path='home' element={<Home />} />
       <Route path='login' element={<Login />} />
       <Route path='register' element={<Register />} />
+      <Route path="resetpwd" element={<ResetPassword />} />
       <Route path='posts' element={<Posts />} />
       <Route path='posts/new' element={<NewPost />} />
       <Route path='posts/:id' element={<PostDetails />} />
