@@ -22,27 +22,27 @@ A **full-stack blog platform** built with **ASP.NET Core Web API**, **React + Ty
 ## 📸 Screenshots
 
 ### **Login Page**
-![Login](./docs/images/login.jpg)
+![Login](./docs/images/login.JPG)
 
 ### **Register Page**
-![Register](./docs/images/register.jpg)
+![Register](./docs/images/register.JPG)
 
 ### **Forgot Password**
-![Forgot Password](./docs/images/forgot-password.jpg)
+![Forgot Password](./docs/images/forgot-password.JPG)
 
 ### **Home Page**
-![Home](./docs/images/home.jpg)
+![Home](./docs/images/home.JPG)
 
 ### **Create Post**
-![Create Post](./docs/images/create-post.jpg)
+![Create Post](./docs/images/create-post.JPG)
 
 ### **Posts Listing**
 ![Post list](./docs/images/posts.JPG)
 ### **Individual Post / Comments**
-![Post Details](./docs/images/post-details.jpg)
+![Post Details](./docs/images/post-details.JPG)
 
 ### **Logout Click**
-![Logout](./docs/images/logout.jpg)
+![Logout](./docs/images/logout.JPG)
 
 
 ---
