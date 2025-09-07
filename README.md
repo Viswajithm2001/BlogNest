@@ -1,136 +1,92 @@
-# 🦸 BlogNest Cinematic Universe – Project Blueprint
+# 📝 BlogNest
 
-## **1. Backend Saga** 🛠
+![.NET Badge](https://img.shields.io/badge/.NET-9-blue)  
+![React Badge](https://img.shields.io/badge/React-19-blue)  
+![PostgreSQL Badge](https://img.shields.io/badge/PostgreSQL-15-blue)
 
-### **Phase 1 – Origins: The Auth Arc**
-- **Set up project & dependencies**  
-  - ASP.NET Core Web API  
-  - PostgreSQL + EF Core  
-- **Database foundation**  
-  - Create `User` entity & DbContext  
-  - Apply migrations  
-- **Authentication system**  
-  - User registration endpoint (`/api/auth/register`)  
-  - User login endpoint (`/api/auth/login`)  
-  - JWT token generation with expiry  
-- **Test with Postman**  
-  - Verify registration  
-  - Verify login & token generation  
-  - Add token to Authorization header  
-- **Security fixes**  
-  - Ensure token changes per login  
-  - Validate JWT in protected endpoints  
+A **full-stack blog platform** built with **ASP.NET Core Web API**, **React + TypeScript**, **Tailwind CSS**, and **PostgreSQL**. Users can register, login, create/edit posts, comment, like, and reset passwords.
 
 ---
 
-### **Phase 2 – Rise of the Posts**
-- **Posts model & migration**  
-  - Create `Post` entity  
-  - Migrate database  
-- **Posts CRUD API**  
-  - `GET /api/posts/posts` – list all posts  
-  - `GET /api/posts/{id}` – single post  
-  - `POST /api/posts` – create post (Auth required)  
-  - `PUT /api/posts/{id}` – update post (Auth required)  
-  - `DELETE /api/posts/{id}` – delete post (Auth required)  
-- **Role-based control (optional)**  
-  - Admin vs normal user permissions  
+## 🚀 Features
+
+- User registration & login with **JWT authentication**  
+- Forgot / Reset Password functionality  
+- Create, read, update, delete blog posts  
+- Like posts and comment system  
+- Responsive UI with Tailwind CSS  
+- Secure endpoints with role-based authorization  
 
 ---
 
-### **Phase 3 – The Gauntlet of Extras**
-- **Advanced features**  
-  - Pagination & search in posts  
-  - Image uploads for posts  
-  - Comments system  
-- **Production readiness**  
-  - Error handling middleware  
-  - Logging  
-  - CORS setup for frontend  
+## 📸 Screenshots
+
+### **Login Page**
+![Login](./docs/images/login.JPG)
+
+### **Register Page**
+![Register](./docs/images/register.JPG)
+
+### **Forgot Password**
+![Forgot Password](./docs/images/forgot-password.JPG)
+
+### **Home Page**
+![Home](./docs/images/home.JPG)
+
+### **Create Post**
+![Create Post](./docs/images/create-post.JPG)
+
+### **Posts Listing**
+![Post list](./docs/images/posts.JPG)
+### **Individual Post / Comments**
+![Post Details](./docs/images/post-details.JPG)
+
+### **Logout Click**
+![Logout](./docs/images/logout.JPG)
+
 
 ---
 
-## **2. Frontend Saga** 💻
+## 🛠️ Tech Stack
 
-### **Phase 1 – The React Awakens**
-- **Project setup**  
-  - Vite + React + TypeScript  
-  - Tailwind CSS configuration  
-- **Routing**  
-  - React Router with `/`, `/login`, `/register`, `/posts`  
-- **Auth integration**  
-  - Login & register pages connected to backend  
-  - Store JWT in `localStorage`  
-  - Axios interceptor for adding Authorization header  
+| Frontend      | Backend       | Database       | Others          |
+|---------------|---------------|----------------|----------------|
+| React + TS    | ASP.NET Core  | PostgreSQL     | Tailwind CSS    |
+| React Router  | EF Core       |                | Axios           |
+| React Context | JWT Auth      |                | Swagger         |
 
 ---
 
-### **Phase 2 – Age of Posts**
-- **Posts listing**  
-  - Fetch & display all posts  
-  - Show post details page  
-- **Create/Edit post**  
-  - Protected routes (check JWT)  
-  - Forms for creating & updating posts  
+## ⚙️ Setup
+
+1. Clone the repository:
+
+```bash
+git clone https://github.com/yourusername/BlogNest.git
+```
+
+2. Backend:
+
+```bash
+cd BlogNest/BlogNest
+dotnet restore
+dotnet run
+```
+
+3. Frontend:
+
+```bash
+cd BlogNest/BlogNestReactApp
+npm install
+npm run dev
+```
+
+4. Access in browser: `http://localhost:5173`
 
 ---
 
-### **Phase 3 – Infinity Polish**
-- **UI/UX upgrades**  
-  - Loading & error states  
-  - Responsive layout  
-  - Navbar with login/logout state  
-- **Extras**  
-  - User profile page  
-  - Comment UI under posts  
-  - Like/share buttons  
+## 🔗 Links
 
----
-
-### **Phase 4 – Endgame**
-- **Deployment**  
-  - Deploy backend to Render/Railway  
-  - Deploy frontend to Vercel/Netlify  
-  - Configure CORS & environment variables  
-- **Final QA**  
-  - End-to-end testing  
-  - Security checks  
----
-## 🚀 Future Enhancements
-
-The following features are planned for future versions of **BlogNest**:
-
-- **🔑 Update Password**
-  - Allow users to update/change their password after logging in.
-  - Validate old password before setting new one.
-
-- **📧 Forgot / Reset Password**
-  - Implement "Forgot Password" flow using email/OTP or reset links.
-
-- **🖼️ Profile Enhancements**
-  - Allow updating profile details (bio, display name, etc.).
-  - Add cover photos in addition to profile pictures.
-
-- **👥 Follow System**
-  - Users can follow/unfollow each other.
-  - Show followers/following count on profile.
-
-- **🔔 Notifications**
-  - Real-time notifications for likes, comments, and new followers.
-
-- **💬 Comments Enhancements**
-  - Nested replies to comments.
-  - Edit/delete comments.
-
-- **❤️ Advanced Likes**
-  - Support reactions (👍❤️😂 etc.) instead of just likes.
-
-- **📊 Analytics**
-  - Show post views, trending posts, and user activity insights.
-
-- **🌐 Deployment**
-  - Deploy the app on cloud platforms (Azure/AWS/Heroku/Netlify).
-
----
-
-📌 These enhancements will be gradually introduced after completing the core features (authentication, posts, comments, likes, and basic profile management).
+- [Backend Documentation](./docs/Setup-dotnet.md)  
+- [Frontend Documentation](./docs/Setup-reactapp.md)  
+- [Project Plan & Workflow](./docs/PlanandWorkflow.md)
