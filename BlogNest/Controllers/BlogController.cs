@@ -17,7 +17,10 @@ namespace BlogNest.Controllers
         {
             _logger = logger;
         }
-
+        /// <summary>
+        /// Logic to return all the posts
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public IActionResult GetPosts()
         {

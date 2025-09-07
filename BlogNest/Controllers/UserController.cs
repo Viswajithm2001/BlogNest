@@ -43,7 +43,6 @@ namespace BlogNest.Controllers
                     u.Id,
                     u.Username,
                     u.Email,
-                    u.ProfilePictureUrl
                 })
                 .FirstOrDefaultAsync();
 
@@ -51,6 +50,7 @@ namespace BlogNest.Controllers
 
             return Ok(user);
         }
+        
         [HttpPut("update-profile")]
         [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UserUpdateDto dto)
@@ -79,48 +79,8 @@ namespace BlogNest.Controllers
                 user.Id,
                 user.Username,
                 user.Email,
-                user.ProfilePictureUrl,
                 user.IsPublic
             });
         }
-
-        [HttpPost("upload-profile-picture")]
-        public async Task<IActionResult> UploadProfilePicture(IFormFile profilePicture)
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (userId == null) return Unauthorized();
-
-            var guidId = Guid.Parse(userId);
-            var user = await _context.Users.FindAsync(guidId);
-            if (user == null) return NotFound();
-
-            if (profilePicture != null && profilePicture.Length > 0)
-            {
-                var fileName = $"{Guid.NewGuid()}{Path.GetExtension(profilePicture.FileName)}";
-                var filePath = Path.Combine("wwwroot/profile-pictures", fileName);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    await profilePicture.CopyToAsync(stream);
-                }
-
-                user.ProfilePictureUrl = $"/profile-pictures/{fileName}";
-                await _context.SaveChangesAsync();
-
-                return Ok(new
-                {
-                    user.Id,
-                    user.Username,
-                    user.Email,
-                    user.ProfilePictureUrl,
-                    user.IsPublic
-                });
-            }
-
-            return BadRequest("Invalid file upload");
-        }
-
     }
 }

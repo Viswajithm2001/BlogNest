@@ -69,6 +69,18 @@ namespace BlogNest.Controllers
             }
             return NoContent();
         }
+        [HttpPut("reset-password")]
+        [AllowAnonymous]
+        public async Task<IActionResult> ResetPassword([FromBody] UpdatePasswordDto dto)
+        {
+            if (dto.NewPassword != dto.ConfirmPassword)
+            {
+                return BadRequest(new { message = "Passwords do not match." });
+            }
+            var result = await _authService.ResetPasswordAsync(dto);
+            if(!result) return NotFound(new { message = "User with the provided email does not exist." });
 
+            return Ok(new { message = "Password reset successfully." });
+        }
     }
 }

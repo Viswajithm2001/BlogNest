@@ -13,6 +13,7 @@ namespace BlogNest.Services
         Task<UserResponseDto> RegisterAsync(UserRegisterDto userRegisterDto);
         Task<string> LoginAsync(UserLoginDto userLoginDto);
         Task<bool> UpdatePrivacyAsync(Guid userId, bool isPublic);
+        Task<bool> ResetPasswordAsync(UpdatePasswordDto dto);
     }
     public class AuthService : IAuthService
     {
@@ -67,6 +68,17 @@ namespace BlogNest.Services
             if (user == null) return false;
 
             user.IsPublic = isPublic;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        public async Task<bool> ResetPasswordAsync(UpdatePasswordDto dto)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (user == null) return false;
+            // Hash new password
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+
+            _context.Users.Update(user);
             await _context.SaveChangesAsync();
             return true;
         }
