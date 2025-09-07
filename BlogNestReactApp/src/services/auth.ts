@@ -9,11 +9,23 @@ export interface AuthResponse {
     //     email: string;
     // };
 }
-
+export interface ResetPassword{
+  newPassword: string,
+  confirmPassword:string,
+  email: string
+}
 export async function Login(username: string, password: string): Promise<AuthResponse> {
   const response = await api.post<AuthResponse>("/auth/login", { username, password });
-  console.log("Login response:", response.data);
   return response.data;
+}
+
+export async function resetpwd(resetPassword: ResetPassword) {
+  if (resetPassword.newPassword !== resetPassword.confirmPassword) {
+    alert("Passwords do not match");
+    return;
+}
+  const response = await api.put("/auth/reset-password", resetPassword);
+  return response.data
 }
 
 const API_URL = api.defaults.baseURL;
